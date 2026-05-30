@@ -8,7 +8,8 @@ Run locally:
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Security
+from fastapi.security import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -24,6 +25,16 @@ load_dotenv()
 # ── Global state ──────────────────────────────────────────────────────────────
 store: VectorStore | None = None
 client: OpenAI | None = None
+
+# ── API Key Auth ──────────────────────────────────────────────────────────────
+API_KEY = os.getenv("API_SECRET_KEY", "changeme")
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def verify_api_key(api_key: str = Security(api_key_header)):
+    if api_key != API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid or missing API key")
+    return api_key
 
 
 @asynccontextmanager
@@ -95,7 +106,7 @@ def health_check():
 
 
 @app.post("/chat", response_model=ChatResponse)
-def chat(request: ChatRequest):
+def chat(request: ChatRequest, _key: str = Depends(verify_api_key)):
     if store is None or client is None:
         raise HTTPException(status_code=503, detail="Service not initialized")
 
