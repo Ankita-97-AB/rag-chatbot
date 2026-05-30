@@ -136,11 +136,10 @@
             chat.scrollTop = chat.scrollHeight;
 
             try {
-                const res = await fetch('/chat', {
+                const res = await fetch('/web/chat', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-Key': window.__API_KEY || ''
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ query, chat_history: chatHistory, top_k: 6 })
                 });

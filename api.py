@@ -128,3 +128,29 @@ def chat(request: ChatRequest, _key: str = Depends(verify_api_key)):
     ]
 
     return ChatResponse(answer=reply, sources=sources)
+
+
+@app.post("/web/chat", response_model=ChatResponse)
+def web_chat(request: ChatRequest):
+    """Public endpoint used by the built-in frontend only."""
+    if store is None or client is None:
+        raise HTTPException(status_code=503, detail="Service not initialized")
+
+    reply, retrieved = answer(
+        query=request.query,
+        store=store,
+        client=client,
+        chat_history=request.chat_history,
+        top_k=request.top_k,
+    )
+
+    sources = [
+        Source(
+            source=c.get("source", ""),
+            page=str(c.get("page", "")),
+            score=round(c.get("score", 0), 4),
+        )
+        for c in retrieved
+    ]
+
+    return ChatResponse(answer=reply, sources=sources)
