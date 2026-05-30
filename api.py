@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     client = OpenAI(api_key=api_key)
     store = VectorStore(client)
 
-    data_dir = os.path.join(os.path.dirname(__file__), "dataset")
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
     if not os.path.exists(data_dir):
         raise RuntimeError(f"Dataset directory not found: {data_dir}")
 
